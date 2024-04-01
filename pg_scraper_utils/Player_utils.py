@@ -70,12 +70,45 @@ async def process_player(player_id):
             player_info['PlayerID'] = player_id
             stats_info = await get_stats_table_info(soup)
 
-            player_info.update(stats_info) #puts player_info and stats_info into dictionary
-            
+            player_info.update(stats_info)#puts player_info and stats_info into dictionary
             print(f"Successfully scraped data for Player ID {player_id}")
-            return player_info
+            return pd.json_normalize(player_info).replace('\n', ' ', regex=True)
 
     except Exception as e:
         print(f"An exception occurred while processing player ID {player_id}: {e}")
         return None
 
+async def find_id_from_name(name: str):
+    
+    player_id_info = pd.read_csv("Perfect-Game-Baseball-Scraper/resource_files/perfect_game_player_ids.csv", usecols=['PlayerID','PlayerName']) 
+    matching_players = player_id_info[player_id_info['PlayerName'].str.contains(name, case=False, na=False)]
+    
+    return matching_players[['PlayerName', 'PlayerID']].to_dict('records')
+
+
+async def find_ids_from_filters(age=None, position=None, graduation_year=None):
+
+    # Load the player information from a CSV file
+    player_id_info = pd.read_csv("Perfect-Game-Baseball-Scraper/resource_files/perfect_game_player_ids.csv").assign(
+        Age=lambda x: x['Age'].astype(str),
+        GraduationYear=lambda x: x['HSGrad'].astype(str)
+    )
+    
+    # Apply filters based on provided arguments, using the modified DataFrame
+    if age is not None:
+        age_str = str(age)
+        modified_df = player_id_info[player_id_info['Age'].str.contains(age_str, na=False)]
+    
+    if position is not None:
+        modified_df = player_id_info[player_id_info['Position'].str.contains(position, case=False, na=False)]
+    
+    if graduation_year is not None:
+        grad_year_str = str(graduation_year)
+        modified_df = player_id_info[player_id_info['GraduationYear'].str.contains(grad_year_str, na=False)]
+    
+    # Return the filtered list of player names and IDs
+    return modified_df[['PlayerName', 'PlayerID']].to_dict('records')
+
+
+
+    
