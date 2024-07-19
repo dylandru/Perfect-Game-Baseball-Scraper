@@ -8,7 +8,7 @@ from pg_scraper_utils import process_event, get_showcase_info, scrape_data
 
 
 
-async def run_event_scraper(start_id: int = 1, end_id: int = 90000, threads: int = 50, csv_filename: str = 'Perfect_Game_Workout_Sheet.csv'):
+async def run_event_scraper(start_id: int = 1, end_id: int = 90000, threads: int = 50, retries: int = 5, csv_filename: str = 'Perfect_Game_Workout_Sheet.csv'):
     '''
     Function accesses showcase data available on Perfect Game through a specified range of Event IDs. Async and Semaphore additions used to hasten process
 	while waiting on site requests. Semaphores should be used in moderation as to not overwhelm with site requests.
@@ -20,7 +20,7 @@ async def run_event_scraper(start_id: int = 1, end_id: int = 90000, threads: int
     
     '''
     event_ids = range(start_id, end_id) 
-    all_tables = await scrape_data(event_ids, threads)
+    all_tables = await scrape_data(event_ids, retries, threads)
 
     all_tables.to_csv(csv_filename, index=False)
     print(f"All Perfect Game Workout data for Event ID {start_id} through Event ID {end_id} has been saved to '{csv_filename}'")

@@ -5,6 +5,7 @@ import pandas as pd
 import nest_asyncio
 import traceback
 from asyncio import Semaphore
+import re
 
 
 async def get_player_info(soup):
@@ -59,24 +60,33 @@ async def get_stats_table_info(soup):
     else:
         return {'TableNotFound': 'True'}
 
-async def process_player(player_id):
+async def process_player(player_id, retries):
     url = f'https://www.perfectgame.org/Players/PlayerProfile.aspx?ID={player_id}'
-    try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            response = await client.get(url)
-            soup = BeautifulSoup(response.text, 'html.parser')
+    attempt = 0
+    while attempt < retries:
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                response = await client.get(url)
+                soup = BeautifulSoup(response.text, 'html.parser')
 
-            player_info = await get_player_info(soup)
-            player_info['PlayerID'] = player_id
-            stats_info = await get_stats_table_info(soup)
+                player_info = await get_player_info(soup)
+                player_info['PlayerID'] = player_id
+                stats_info = await get_stats_table_info(soup)
 
-            player_info.update(stats_info)#puts player_info and stats_info into dictionary
-            print(f"Successfully scraped data for Player ID {player_id}")
-            return pd.json_normalize(player_info).replace('\n', ' ', regex=True)
+                player_info.update(stats_info)
+                print(f"Successfully scraped data for Player ID {player_id}")
+                return pd.json_normalize(player_info).replace('\n', ' ', regex=True)
+            
+        except IndexError as e:
+                print(f"IndexError for Event {player_id}: {e}") #does not retry if Index Error - these are caused by entries not existing
+                return None
 
-    except Exception as e:
-        print(f"An exception occurred while processing player ID {player_id}: {e}")
-        return None
+        except Exception as e:
+            attempt += 1
+            print(f"Attempt {attempt} failed for Player ID {player_id}: {e}")
+            if attempt == retries:
+                print(f"All {retries} retries failed for Player ID {player_id}")
+                return None
 
 async def find_id_from_name(name: str):
     
@@ -109,6 +119,6 @@ async def find_ids_from_filters(age=None, position=None, graduation_year=None):
     # Return the filtered list of player names and IDs
     return modified_df[['PlayerName', 'PlayerID']].to_dict('records')
 
-
-
+def clean_string(s):
+    return re.sub(r'^0+\s*', '', str(s).strip())
     
