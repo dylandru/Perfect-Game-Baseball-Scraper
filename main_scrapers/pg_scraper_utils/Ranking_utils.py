@@ -10,16 +10,7 @@ import time
 ranking_fieldnames = ['NatPGRank', 'PlayerName', 'Position', 'BT', 'Height', 'Weight', 'Hometown', 'TournamentTeam', 'HS', 'Commit', 'Report']
 
 def parse_player_row(player_row, report_row) -> dict:
-    """
-    Parses fields for a given player row within a table, including biographical info and report if available.
 
-    Args:
-        player_row (tag): Tag object representing the player's main row info.
-        report_row (tag): Tag object representing the player's comment row if present.
-
-    Returns:
-        dict: A dictionary containing the player's data with keys matching the ranking_fieldnames.
-    """
 
     player_data = {}
     fields = {
@@ -50,17 +41,7 @@ def parse_player_row(player_row, report_row) -> dict:
     return player_data
 
 def scrape_rankings_page(driver) -> list:
-    """
 
-    Scrapes an entire page of the PG Rankings based on the specific table format, appending a dictionary of player data to a list.
-    
-    Args:
-        driver (Webdriver.Chrome): Selenium WebDriver instance to access dynamic site.
-
-    Returns:
-        list: A list of dictionaries, where each dictionary contains a player's data.
-
-    """
     soup = BeautifulSoup(driver.page_source, 'html.parser')
     
     table = soup.find('table', {'id': 'ContentTopLevel_ContentPlaceHolder1_gvPlayers'})
@@ -81,20 +62,7 @@ def scrape_rankings_page(driver) -> list:
     return players_data
 
 def navigate_to_next_page(driver, current_page) -> bool:
-    """
 
-    Allows the specific structure of the webpage to be correctly navigated through so that the different tables can be parsed by shifting the page. 
-
-    Args:
-        driver (Webdriver.Chrome): Selenium WebDriver instance to access dynamic site.
-        current_page (int): Page that is being scraped currently.
-
-    Returns:
-        bool: True / False depending on whether the next page could be navigated towards.
-
-    Rasies:
-        Exception: Quits when next page cannot be navigated towards.
-    """
     try:
         paging_row = WebDriverWait(driver, 5).until(
             EC.presence_of_element_located((By.XPATH, "//tr[@class='pagingnavy']"))

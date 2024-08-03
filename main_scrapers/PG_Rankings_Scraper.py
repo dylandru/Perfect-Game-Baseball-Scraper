@@ -16,7 +16,7 @@ def scrape_rankings_table(year: int, max_pages: int = 20) -> None:
         max_pages (int, optional): Number of pages to scrape (100 players per page). Defaults to 20.
 
     Returns:
-        None: No value returned - ranking data written to CSV file.
+        None: Ranking data written to saved CSV file.
 
     Raises:
         KeyboardInterrupt: Program quits when User hits CTRL+C.
