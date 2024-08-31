@@ -9,7 +9,8 @@ from pg_scraper_utils.Ranking_utils import scrape_rankings_page, navigate_to_nex
 
 def scrape_rankings_table(year: int, max_pages: int = 20) -> None:
     """
-    Scrapes PG rankings for a given year and saves to a CSV file named based on amount of players.
+    Scrapes PG rankings for a given year and saves to a CSV file named based on amount of players. 
+    Note: National Rankings are considered equal after 500. 
 
     Args:
         year (int): The year for which to scrape rankings.
